@@ -24,6 +24,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "Hey there! I am using ChatApp.",
     },
+    blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
   },
   { timestamps: true },
 );

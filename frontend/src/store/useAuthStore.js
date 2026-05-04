@@ -79,6 +79,17 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  toggleBlockUser: async (userId) => {
+    try {
+      const res = await axiosInstance.post(`/auth/block/${userId}`);
+      set({ authUser: res.data });
+      const isBlocked = res.data.blockedUsers.includes(userId);
+      toast.success(isBlocked ? "User blocked" : "User unblocked");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Action failed");
+    }
+  },
+
   connectSocket: () => {
     const { authUser } = get();
     if (!authUser || get().socket?.connected) return;

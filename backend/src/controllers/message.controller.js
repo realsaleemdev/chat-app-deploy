@@ -38,6 +38,17 @@ export const sendMessage = async (req, res) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
+    const receiver = await User.findById(receiverId);
+    if (!receiver) return res.status(404).json({ message: "User not found" });
+
+    if (receiver.blockedUsers && receiver.blockedUsers.includes(senderId)) {
+      return res.status(403).json({ message: "You cannot send a message to this user." });
+    }
+
+    if (req.user.blockedUsers && req.user.blockedUsers.includes(receiverId)) {
+      return res.status(403).json({ message: "You must unblock this user to send a message." });
+    }
+
     let imageUrl;
     if (image) {
       try {

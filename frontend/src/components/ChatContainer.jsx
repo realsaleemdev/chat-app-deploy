@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { User, CheckCheck, ArrowLeft, Download } from "lucide-react";
+import { User, CheckCheck, ArrowLeft, Download, Ban } from "lucide-react";
 import { useChatStore } from "../store/useChatStore.js";
 import { useAuthStore } from "../store/useAuthStore.js";
 import MessageInput from "./MessageInput.jsx";
@@ -69,11 +69,12 @@ const ImageLightbox = ({ src, onClose }) => {
 
 export default function ChatContainer() {
   const { messages, getMessages, isMessagesLoading, selectedUser, clearUnread } = useChatStore();
-  const { authUser, onlineUsers } = useAuthStore();
+  const { authUser, onlineUsers, toggleBlockUser } = useAuthStore();
   const bottomRef = useRef(null);
   const [lightboxImg, setLightboxImg] = useState(null);
 
   const isOnline = onlineUsers.includes(selectedUser?._id);
+  const isBlockedByMe = authUser?.blockedUsers?.includes(selectedUser?._id);
 
   useEffect(() => {
     if (selectedUser?._id) {
@@ -126,6 +127,14 @@ export default function ChatContainer() {
             {isOnline ? "Online" : "Offline"}
           </div>
         </div>
+        <button 
+          onClick={() => toggleBlockUser(selectedUser._id)}
+          style={{ background: "none", border: "none", color: isBlockedByMe ? "#ff6b6b" : "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem", marginLeft: "auto" }}
+          title={isBlockedByMe ? "Unblock User" : "Block User"}
+        >
+          <Ban size={16} />
+          <span className="hide-on-mobile">{isBlockedByMe ? "Unblock" : "Block"}</span>
+        </button>
       </div>
 
       {/* Messages Area */}
@@ -197,7 +206,13 @@ export default function ChatContainer() {
       </div>
 
       {/* Input */}
-      <MessageInput />
+      {isBlockedByMe ? (
+        <div style={{ padding: "1rem", textAlign: "center", color: "#ff6b6b", background: "var(--bg-panel)", borderTop: "1px solid var(--border)", fontSize: "0.9rem" }}>
+          You have blocked this user. Unblock to send messages.
+        </div>
+      ) : (
+        <MessageInput />
+      )}
 
       {/* Lightbox */}
       {lightboxImg && <ImageLightbox src={lightboxImg} onClose={() => setLightboxImg(null)} />}

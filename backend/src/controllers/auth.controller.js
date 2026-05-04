@@ -45,6 +45,7 @@ export const signup = async (req, res) => {
       email: newUser.email,
       profilePic: newUser.profilePic,
       bio: newUser.bio,
+      blockedUsers: newUser.blockedUsers,
     });
   } catch (error) {
     console.log("Error in signup controller:", error.message);
@@ -73,6 +74,7 @@ export const login = async (req, res) => {
       email: user.email,
       profilePic: user.profilePic,
       bio: user.bio,
+      blockedUsers: user.blockedUsers,
     });
   } catch (error) {
     console.log("Error in login controller:", error.message);
@@ -131,6 +133,41 @@ export const checkAuth = (req, res) => {
     res.status(200).json({ user: req.user });
   } catch (error) {
     console.log("Error in checkAuth controller:", error.message);
+    res.status(500).json({ message: "Internal Server error" });
+  }
+};
+
+export const toggleBlock = async (req, res) => {
+  try {
+    const userIdToToggle = req.params.id;
+    const myId = req.user._id;
+
+    if (userIdToToggle === myId.toString()) {
+      return res.status(400).json({ message: "You cannot block yourself" });
+    }
+
+    const user = await User.findById(myId);
+    const isBlocked = user.blockedUsers.includes(userIdToToggle);
+
+    if (isBlocked) {
+      user.blockedUsers = user.blockedUsers.filter((id) => id.toString() !== userIdToToggle);
+    } else {
+      user.blockedUsers.push(userIdToToggle);
+    }
+
+    await user.save();
+    
+    // Also return the updated user object with the blocked array
+    res.status(200).json({
+      _id: user._id,
+      fullname: user.fullname,
+      email: user.email,
+      profilePic: user.profilePic,
+      bio: user.bio,
+      blockedUsers: user.blockedUsers,
+    });
+  } catch (error) {
+    console.log("Error in toggleBlock controller:", error.message);
     res.status(500).json({ message: "Internal Server error" });
   }
 };
