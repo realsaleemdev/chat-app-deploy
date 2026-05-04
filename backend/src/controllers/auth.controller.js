@@ -97,10 +97,18 @@ export const updateprofile = async (req, res) => {
       return res.status(400).json({ message: "Profile picture is required" });
     }
 
-    const result = await cloudinary.uploader.upload(profilePic);
+    let imageUrl;
+    try {
+      const result = await cloudinary.uploader.upload(profilePic);
+      imageUrl = result.secure_url;
+    } catch (uploadError) {
+      console.error("Cloudinary upload failed, falling back to base64:", uploadError.message);
+      imageUrl = profilePic; // Fallback to base64 string directly
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { profilePic: result.secure_url },
+      { profilePic: imageUrl },
       { new: true },
     );
     res.status(200).json({ updatedUser });

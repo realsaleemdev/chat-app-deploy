@@ -40,8 +40,13 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
-      const uploadResponse = await cloudinary.uploader.upload(image);
-      imageUrl = uploadResponse.secure_url;
+      try {
+        const uploadResponse = await cloudinary.uploader.upload(image);
+        imageUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error("Cloudinary upload failed, falling back to base64:", uploadError.message);
+        imageUrl = image; // Fallback to base64 string directly
+      }
     }
 
     const newMessage = new Message({
