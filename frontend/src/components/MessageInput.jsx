@@ -1,13 +1,30 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { Image, Send, X, Smile } from "lucide-react";
+import EmojiPicker from "emoji-picker-react";
 import toast from "react-hot-toast";
 import { useChatStore } from "../store/useChatStore.js";
 
 export default function MessageInput() {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileRef = useRef(null);
+  const emojiPickerRef = useRef(null);
   const { sendMessage } = useChatStore();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const onEmojiClick = (emojiObject) => {
+    setText((prevInput) => prevInput + emojiObject.emoji);
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -61,7 +78,21 @@ export default function MessageInput() {
 
       <div className="message-input-area">
         {/* Image Upload Button */}
-        <div className="input-actions">
+        <div className="input-actions" style={{ position: "relative" }}>
+          {showEmojiPicker && (
+            <div ref={emojiPickerRef} style={{ position: "absolute", bottom: "50px", left: "0", zIndex: 100 }}>
+              <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" />
+            </div>
+          )}
+          <button
+            className="icon-btn"
+            title="Add Emoji"
+            onClick={() => setShowEmojiPicker((prev) => !prev)}
+            style={{ color: showEmojiPicker ? "var(--accent)" : "var(--text-muted)" }}
+          >
+            <Smile size={20} />
+          </button>
+          
           <input
             ref={fileRef}
             type="file"

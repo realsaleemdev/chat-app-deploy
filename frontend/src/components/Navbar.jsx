@@ -1,22 +1,40 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, LogOut, User, Camera, X, Settings, Edit2, Check } from "lucide-react";
+import { MessageSquare, LogOut, User, Camera, X, Settings, Edit2, Check, Trash2, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore.js";
 
 export default function Navbar() {
-  const { authUser, logout, updateProfile, isUpdatingProfile } = useAuthStore();
+  const { authUser, logout, updateProfile, isUpdatingProfile, deleteAccount } = useAuthStore();
   const [showProfile, setShowProfile] = useState(false);
   const [isEditingBio, setIsEditingBio] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
   const [bioText, setBioText] = useState("");
+  const [nameText, setNameText] = useState("");
   const fileRef = useRef(null);
 
   useEffect(() => {
     if (authUser?.bio) setBioText(authUser.bio);
-  }, [authUser?.bio, showProfile]);
+    if (authUser?.fullname) setNameText(authUser.fullname);
+  }, [authUser?.bio, authUser?.fullname, showProfile]);
 
   const handleBioSave = () => {
     updateProfile({ bio: bioText });
     setIsEditingBio(false);
+  };
+
+  const handleNameSave = () => {
+    if (nameText.trim()) updateProfile({ fullname: nameText.trim() });
+    setIsEditingName(false);
+  };
+
+  const toggleOnlineStatus = () => {
+    updateProfile({ showOnlineStatus: !authUser.showOnlineStatus });
+  };
+
+  const handleDeleteAccount = () => {
+    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      deleteAccount();
+    }
   };
 
   const handleAvatarChange = (e) => {
@@ -109,7 +127,29 @@ export default function Navbar() {
                 </div>
               </div>
               <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarChange} />
-              <div className="profile-name">{authUser?.fullname}</div>
+              
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                {!isEditingName ? (
+                  <>
+                    <div className="profile-name">{authUser?.fullname}</div>
+                    <button className="icon-btn" style={{ padding: 4 }} onClick={() => setIsEditingName(true)} title="Edit Name">
+                      <Edit2 size={14} />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <input 
+                      autoFocus
+                      value={nameText}
+                      onChange={(e) => setNameText(e.target.value)}
+                      style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--text-primary)", background: "var(--bg-input)", border: "1px solid var(--accent)", padding: "0.2rem 0.5rem", borderRadius: "var(--radius-sm)", outline: "none", textAlign: "center", width: "180px" }}
+                    />
+                    <button className="icon-btn" style={{ padding: 4, color: "var(--accent)" }} onClick={handleNameSave} title="Save Name">
+                      <Check size={16} />
+                    </button>
+                  </>
+                )}
+              </div>
               <div className="profile-email">{authUser?.email}</div>
               
               <div style={{ width: "100%", marginTop: "1rem" }}>
@@ -142,12 +182,36 @@ export default function Navbar() {
               </div>
             </div>
 
-            <div style={{ background: "var(--bg-input)", borderRadius: "var(--radius-sm)", padding: "0.9rem 1rem" }}>
+            <div style={{ background: "var(--bg-input)", borderRadius: "var(--radius-sm)", padding: "0.9rem 1rem", marginTop: "1rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text-primary)", fontWeight: 500 }}>Show Online Status</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Let others see when you are online</div>
+                </div>
+                <button 
+                  onClick={toggleOnlineStatus}
+                  style={{ background: authUser?.showOnlineStatus ? "var(--accent)" : "var(--bg-primary)", border: authUser?.showOnlineStatus ? "none" : "1px solid var(--border)", color: authUser?.showOnlineStatus ? "white" : "var(--text-muted)", borderRadius: "var(--radius-full)", padding: "0.4rem 0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem" }}
+                >
+                  {authUser?.showOnlineStatus ? <Eye size={14} /> : <EyeOff size={14} />}
+                  {authUser?.showOnlineStatus ? "Visible" : "Hidden"}
+                </button>
+              </div>
+            </div>
+
+            <div style={{ background: "var(--bg-input)", borderRadius: "var(--radius-sm)", padding: "0.9rem 1rem", marginTop: "1rem" }}>
               <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.25rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Member since</div>
               <div style={{ fontSize: "0.88rem", color: "var(--text-secondary)" }}>
                 {authUser?.createdAt ? new Date(authUser.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "—"}
               </div>
             </div>
+
+            <button 
+              onClick={handleDeleteAccount}
+              style={{ width: "100%", marginTop: "1rem", background: "rgba(255,107,107,0.1)", color: "#ff6b6b", border: "1px solid rgba(255,107,107,0.2)", borderRadius: "var(--radius-sm)", padding: "0.75rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.9rem", fontWeight: 500 }}
+            >
+              <Trash2 size={16} />
+              Delete Account
+            </button>
           </div>
         </div>
       )}
