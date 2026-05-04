@@ -1,12 +1,23 @@
-import { useState, useRef } from "react";
-import { MessageSquare, LogOut, User, Camera, X, Settings } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { MessageSquare, LogOut, User, Camera, X, Settings, Edit2, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore.js";
 
 export default function Navbar() {
   const { authUser, logout, updateProfile, isUpdatingProfile } = useAuthStore();
   const [showProfile, setShowProfile] = useState(false);
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [bioText, setBioText] = useState("");
   const fileRef = useRef(null);
+
+  useEffect(() => {
+    if (authUser?.bio) setBioText(authUser.bio);
+  }, [authUser?.bio, showProfile]);
+
+  const handleBioSave = () => {
+    updateProfile({ bio: bioText });
+    setIsEditingBio(false);
+  };
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -100,6 +111,35 @@ export default function Navbar() {
               <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarChange} />
               <div className="profile-name">{authUser?.fullname}</div>
               <div className="profile-email">{authUser?.email}</div>
+              
+              <div style={{ width: "100%", marginTop: "1rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                  <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>About</span>
+                  {!isEditingBio ? (
+                    <button className="icon-btn" style={{ padding: 4 }} onClick={() => setIsEditingBio(true)} title="Edit Bio">
+                      <Edit2 size={14} />
+                    </button>
+                  ) : (
+                    <button className="icon-btn" style={{ padding: 4, color: "var(--accent)" }} onClick={handleBioSave} title="Save Bio">
+                      <Check size={16} />
+                    </button>
+                  )}
+                </div>
+                {!isEditingBio ? (
+                  <div style={{ fontSize: "0.95rem", color: "var(--text-primary)", background: "var(--bg-input)", padding: "0.75rem", borderRadius: "var(--radius-sm)", minHeight: "40px" }}>
+                    {authUser?.bio || "Hey there! I am using ChatApp."}
+                  </div>
+                ) : (
+                  <textarea 
+                    autoFocus
+                    value={bioText}
+                    onChange={(e) => setBioText(e.target.value)}
+                    style={{ width: "100%", fontSize: "0.95rem", color: "var(--text-primary)", background: "var(--bg-primary)", border: "1px solid var(--accent)", padding: "0.75rem", borderRadius: "var(--radius-sm)", outline: "none", resize: "none", fontFamily: "inherit" }}
+                    rows={2}
+                    maxLength={100}
+                  />
+                )}
+              </div>
             </div>
 
             <div style={{ background: "var(--bg-input)", borderRadius: "var(--radius-sm)", padding: "0.9rem 1rem" }}>

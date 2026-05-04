@@ -44,6 +44,7 @@ export const signup = async (req, res) => {
       fullname: newUser.fullname,
       email: newUser.email,
       profilePic: newUser.profilePic,
+      bio: newUser.bio,
     });
   } catch (error) {
     console.log("Error in signup controller:", error.message);
@@ -71,6 +72,7 @@ export const login = async (req, res) => {
       fullname: user.fullname,
       email: user.email,
       profilePic: user.profilePic,
+      bio: user.bio,
     });
   } catch (error) {
     console.log("Error in login controller:", error.message);
@@ -90,25 +92,31 @@ export const logout = (req, res) => {
 
 export const updateprofile = async (req, res) => {
   try {
-    const { profilePic } = req.body;
+    const { profilePic, bio } = req.body;
     const userId = req.user._id;
 
-    if (!profilePic) {
-      return res.status(400).json({ message: "Profile picture is required" });
+    if (!profilePic && bio === undefined) {
+      return res.status(400).json({ message: "No data to update" });
     }
 
-    let imageUrl;
-    try {
-      const result = await cloudinary.uploader.upload(profilePic);
-      imageUrl = result.secure_url;
-    } catch (uploadError) {
-      console.error("Cloudinary upload failed, falling back to base64:", uploadError.message);
-      imageUrl = profilePic; // Fallback to base64 string directly
+    let updateData = {};
+    if (bio !== undefined) updateData.bio = bio;
+
+    if (profilePic) {
+      let imageUrl;
+      try {
+        const result = await cloudinary.uploader.upload(profilePic);
+        imageUrl = result.secure_url;
+      } catch (uploadError) {
+        console.error("Cloudinary upload failed, falling back to base64:", uploadError.message);
+        imageUrl = profilePic; // Fallback to base64 string directly
+      }
+      updateData.profilePic = imageUrl;
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { profilePic: imageUrl },
+      updateData,
       { new: true },
     );
     res.status(200).json({ updatedUser });

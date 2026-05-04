@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    bio: {
+      type: String,
+      default: "Hey there! I am using ChatApp.",
+    },
   },
   { timestamps: true },
 );
