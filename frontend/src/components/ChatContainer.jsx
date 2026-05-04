@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { User, CheckCheck } from "lucide-react";
+import { User, CheckCheck, ArrowLeft } from "lucide-react";
 import { useChatStore } from "../store/useChatStore.js";
 import { useAuthStore } from "../store/useAuthStore.js";
 import MessageInput from "./MessageInput.jsx";
@@ -69,6 +69,13 @@ export default function ChatContainer() {
     <div className="chat-area">
       {/* Chat Header */}
       <div className="chat-header">
+        <button 
+          className="back-btn mobile-only" 
+          onClick={() => useChatStore.getState().setSelectedUser(null)}
+          title="Back"
+        >
+          <ArrowLeft size={20} />
+        </button>
         <div className="avatar-wrap">
           {selectedUser?.profilePic ? (
             <img src={selectedUser.profilePic} alt={selectedUser.fullname} className="avatar" />

@@ -20,7 +20,7 @@ export default function HomePage() {
   return (
     <div className="app-layout">
       <Navbar />
-      <div className="main-content">
+      <div className={`main-content ${selectedUser ? "chat-active" : "sidebar-active"}`}>
         <Sidebar />
         {selectedUser ? <ChatContainer /> : <NoChatSelected />}
       </div>

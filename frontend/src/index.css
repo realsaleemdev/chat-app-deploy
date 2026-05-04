@@ -819,3 +819,36 @@ html, body, #root {
   .chat-area.mobile-visible { display: flex; }
   .sidebar.mobile-hidden { display: none; }
 }
+
+
+/* ─── Mobile Responsiveness ─────────────────────────────────────────── */
+.mobile-only { display: none; }
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .mobile-only { display: flex; }
+  .sidebar {
+    width: 100%;
+  }
+  .main-content.chat-active .sidebar {
+    display: none;
+  }
+  .main-content.sidebar-active .chat-area,
+  .main-content.sidebar-active .no-chat-selected {
+    display: none;
+  }
+  .chat-bubble {
+    max-width: 85%;
+  }
+}
