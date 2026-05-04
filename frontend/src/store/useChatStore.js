@@ -9,6 +9,7 @@ export const useChatStore = create((set, get) => ({
   selectedUser: null,
   isUsersLoading: false,
   isMessagesLoading: false,
+  unreadMessages: [],
 
   getUsers: async () => {
     set({ isUsersLoading: true });
@@ -48,13 +49,25 @@ export const useChatStore = create((set, get) => ({
   },
 
   subscribeToMessages: () => {
-    const { selectedUser } = get();
-    if (!selectedUser) return;
     const socket = useAuthStore.getState().socket;
-    socket?.on("newMessage", (newMessage) => {
-      if (newMessage.senderId !== selectedUser._id) return;
-      set({ messages: [...get().messages, newMessage] });
+    if (!socket) return;
+    socket.off("newMessage");
+    socket.on("newMessage", (newMessage) => {
+      const { selectedUser, messages, unreadMessages, users } = get();
+      if (selectedUser && newMessage.senderId === selectedUser._id) {
+        set({ messages: [...messages, newMessage] });
+      } else {
+        const sender = users.find((u) => u._id === newMessage.senderId);
+        toast.success(`New message from ${sender?.fullname || "someone"}`);
+        if (!unreadMessages.includes(newMessage.senderId)) {
+          set({ unreadMessages: [...unreadMessages, newMessage.senderId] });
+        }
+      }
     });
+  },
+
+  clearUnread: (userId) => {
+    set({ unreadMessages: get().unreadMessages.filter((id) => id !== userId) });
   },
 
   unsubscribeFromMessages: () => {

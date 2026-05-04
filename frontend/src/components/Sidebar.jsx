@@ -13,14 +13,16 @@ const AvatarPlaceholder = ({ name, size = 46 }) => (
 );
 
 export default function Sidebar() {
-  const { users, getUsers, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
+  const { users, getUsers, selectedUser, setSelectedUser, isUsersLoading, unreadMessages, clearUnread, subscribeToMessages, unsubscribeFromMessages } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const [search, setSearch] = useState("");
   const [onlineOnly, setOnlineOnly] = useState(false);
 
   useEffect(() => {
     getUsers();
-  }, [getUsers]);
+    subscribeToMessages();
+    return () => unsubscribeFromMessages();
+  }, [getUsers, subscribeToMessages, unsubscribeFromMessages]);
 
   const filtered = users.filter((u) => {
     const matchSearch = u.fullname.toLowerCase().includes(search.toLowerCase());
@@ -82,8 +84,11 @@ export default function Sidebar() {
               <div
                 key={user._id}
                 id={`user-${user._id}`}
-                className={`user-item ${isActive ? "active" : ""}`}
-                onClick={() => setSelectedUser(user)}
+                className={`user-item ${isActive ? "active" : ""} ${unreadMessages.includes(user._id) ? "unread" : ""}`}
+                onClick={() => {
+                  setSelectedUser(user);
+                  clearUnread(user._id);
+                }}
               >
                 <div className="avatar-wrap">
                   {user.profilePic ? (
@@ -94,7 +99,12 @@ export default function Sidebar() {
                   {isOnline && <span className="online-dot" />}
                 </div>
                 <div className="user-info">
-                  <div className="user-name">{user.fullname}</div>
+                  <div className="user-name">
+                    {user.fullname}
+                    {unreadMessages.includes(user._id) && (
+                      <span className="unread-dot" style={{ display: "inline-block", width: 8, height: 8, backgroundColor: "var(--accent)", borderRadius: "50%", marginLeft: 8 }} />
+                    )}
+                  </div>
                   <div className={`user-status ${isOnline ? "online" : ""}`}>
                     {isOnline ? "● Online" : "○ Offline"}
                   </div>

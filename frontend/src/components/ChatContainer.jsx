@@ -34,7 +34,7 @@ const ImageLightbox = ({ src, onClose }) => (
 );
 
 export default function ChatContainer() {
-  const { messages, getMessages, isMessagesLoading, selectedUser, subscribeToMessages, unsubscribeFromMessages } = useChatStore();
+  const { messages, getMessages, isMessagesLoading, selectedUser, clearUnread } = useChatStore();
   const { authUser, onlineUsers } = useAuthStore();
   const bottomRef = useRef(null);
   const [lightboxImg, setLightboxImg] = useState(null);
@@ -44,10 +44,9 @@ export default function ChatContainer() {
   useEffect(() => {
     if (selectedUser?._id) {
       getMessages(selectedUser._id);
-      subscribeToMessages();
+      clearUnread(selectedUser._id);
     }
-    return () => unsubscribeFromMessages();
-  }, [selectedUser?._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  }, [selectedUser?._id, getMessages, clearUnread]);
 
   // Auto-scroll to latest message
   useEffect(() => {
