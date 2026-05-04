@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { User, CheckCheck, ArrowLeft } from "lucide-react";
+import { User, CheckCheck, ArrowLeft, Download } from "lucide-react";
 import { useChatStore } from "../store/useChatStore.js";
 import { useAuthStore } from "../store/useAuthStore.js";
 import MessageInput from "./MessageInput.jsx";
@@ -20,18 +20,52 @@ const formatDateLabel = (dateStr) => {
 };
 
 // Lightbox for full image view
-const ImageLightbox = ({ src, onClose }) => (
-  <div
-    style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 300, cursor: "zoom-out"
-    }}
-    onClick={onClose}
-  >
-    <img src={src} alt="Full view" style={{ maxWidth: "90vw", maxHeight: "90vh", borderRadius: 8, objectFit: "contain" }} />
-  </div>
-);
+const ImageLightbox = ({ src, onClose }) => {
+  const handleDownload = async (e) => {
+    e.stopPropagation();
+    try {
+      const response = await fetch(src);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ChatApp_Image_${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download failed", err);
+      const link = document.createElement("a");
+      link.href = src;
+      link.download = `ChatApp_Image_${Date.now()}.png`;
+      link.target = "_blank";
+      link.click();
+    }
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        zIndex: 300, cursor: "zoom-out"
+      }}
+      onClick={onClose}
+    >
+      <div style={{ position: "absolute", top: "1rem", right: "1rem", display: "flex", gap: "1rem" }}>
+        <button 
+          onClick={handleDownload} 
+          style={{ background: "rgba(0,0,0,0.5)", color: "white", border: "none", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+          title="Download Image"
+        >
+          <Download size={20} />
+        </button>
+      </div>
+      <img src={src} alt="Full view" style={{ maxWidth: "90vw", maxHeight: "90vh", borderRadius: 8, objectFit: "contain" }} />
+    </div>
+  );
+};
 
 export default function ChatContainer() {
   const { messages, getMessages, isMessagesLoading, selectedUser, clearUnread } = useChatStore();
